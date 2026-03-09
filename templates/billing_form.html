@@ -1,0 +1,444 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Billing Details</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
+
+<style>
+
+body{
+background:#f3f6fa;
+}
+
+.form-container{
+max-width:900px;
+margin:auto;
+margin-top:60px;
+}
+
+.card{
+border:none;
+border-radius:12px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+}
+
+.required{
+color:red;
+}
+
+.error-text{
+font-size:13px;
+color:red;
+display:none;
+}
+
+.spinner{
+display:none;
+}
+
+.iti{
+width:100%;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container form-container">
+
+<h2 class="text-center mb-4 fw-semibold">
+<i class="bi bi-receipt"></i> Billing Details
+</h2>
+
+<form id="billingForm" method="POST" action="/receipt" class="needs-validation" novalidate>
+
+<!-- RECEIVER DETAILS -->
+
+<div class="card mb-4">
+
+<div class="card-header fw-semibold">
+<i class="bi bi-geo-alt"></i> Receiver Details
+</div>
+
+<div class="card-body">
+
+<div class="mb-3">
+
+<label class="form-label">
+Receiver Name <span class="required">*</span>
+</label>
+
+<input type="text" class="form-control" id="receiver_name" name="receiver_name" required>
+
+<div class="invalid-feedback">
+Please enter receiver name.
+</div>
+
+</div>
+
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+Phone Number <span class="required">*</span>
+</label>
+
+<input id="receiver_phone" name="receiver_phone" type="tel" class="form-control" required>
+
+<div id="receiverPhoneError" class="error-text">
+Invalid phone number
+</div>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+Email Address <span class="required">*</span>
+</label>
+
+<input type="email" class="form-control" id="receiver_email" name="receiver_email" required>
+
+<div class="invalid-feedback">
+Enter valid email.
+</div>
+
+</div>
+
+</div>
+
+
+<div class="mb-3">
+
+<label class="form-label">
+Street Address <span class="required">*</span>
+</label>
+
+<input type="text" class="form-control" id="street" name="street" required>
+
+<div class="invalid-feedback">
+Please enter street address.
+</div>
+
+</div>
+
+
+<div class="mb-3">
+
+<label class="form-label">
+Pincode <span class="required">*</span>
+</label>
+
+<input type="text"
+class="form-control"
+id="pincode"
+name="pincode"
+maxlength="6"
+required>
+
+<div class="invalid-feedback">
+Enter valid pincode.
+</div>
+
+</div>
+
+
+<div class="row">
+
+<div class="col-md-4 mb-3">
+
+<label class="form-label">Country <span class="required">*</span></label>
+
+<input type="text" class="form-control" id="country" name="country" required>
+
+</div>
+
+<div class="col-md-4 mb-3">
+
+<label class="form-label">State <span class="required">*</span></label>
+
+<input type="text" class="form-control" id="state" name="state" required>
+
+</div>
+
+<div class="col-md-4 mb-3">
+
+<label class="form-label">City <span class="required">*</span></label>
+
+<input type="text" class="form-control" id="city" name="city" required>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- OWNER DETAILS -->
+
+<div class="card mb-4">
+
+<div class="card-header fw-semibold">
+<i class="bi bi-person"></i> Owner Details
+</div>
+
+<div class="card-body">
+
+<div class="form-check mb-3">
+
+<input class="form-check-input" type="checkbox" id="sameDetails">
+
+<label class="form-check-label">
+Same as receiver details
+</label>
+
+</div>
+
+
+<div class="mb-3">
+
+<label class="form-label">
+Owner Name <span class="required">*</span>
+</label>
+
+<input type="text" class="form-control" id="owner_name" name="owner_name" required>
+
+</div>
+
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+Phone Number <span class="required">*</span>
+</label>
+
+<input id="owner_phone" name="owner_phone" type="tel" class="form-control" required>
+
+<div id="ownerPhoneError" class="error-text">
+Invalid phone number
+</div>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+Email Address <span class="required">*</span>
+</label>
+
+<input type="email" class="form-control" id="owner_email" name="owner_email" required>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<button id="submitBtn"
+type="submit"
+class="btn btn-primary w-100 py-2 fs-5"
+disabled>
+
+<i class="bi bi-file-earmark-text"></i> Generate Bill
+
+</button>
+
+</form>
+
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+
+<script>
+
+function setupPhone(inputId,errorId){
+
+const input=document.querySelector(inputId)
+
+const iti=window.intlTelInput(input,{
+initialCountry:"in",    
+separateDialCode:true,
+utilsScript:"https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js"
+})
+
+input.addEventListener("blur",function(){
+
+if(!iti.isValidNumber()){
+document.querySelector(errorId).style.display="block"
+}else{
+document.querySelector(errorId).style.display="none"
+}
+
+})
+
+return iti
+
+}
+
+const receiverPhone=setupPhone("#receiver_phone","#receiverPhoneError")
+const ownerPhone=setupPhone("#owner_phone","#ownerPhoneError")
+
+</script>
+
+
+
+<script>
+
+document.getElementById("pincode").addEventListener("input",function(){
+
+let pincode=this.value.replace(/[^0-9]/g,'')
+
+this.value=pincode
+
+if(pincode.length!==6) return
+
+fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+.then(res=>res.json())
+.then(data=>{
+
+if(data[0].Status==="Success"){
+
+let post=data[0].PostOffice[0]
+
+document.getElementById("city").value=post.District
+document.getElementById("state").value=post.State
+document.getElementById("country").value="India"
+
+}else{
+
+document.getElementById("city").value=""
+document.getElementById("state").value=""
+document.getElementById("country").value=""
+
+}
+
+})
+
+})
+
+</script>
+
+
+
+<script>
+
+const receiverName=document.getElementById("receiver_name")
+const receiverEmail=document.getElementById("receiver_email")
+
+const ownerName=document.getElementById("owner_name")
+const ownerEmail=document.getElementById("owner_email")
+
+const checkbox=document.getElementById("sameDetails")
+
+const form=document.getElementById("billingForm")
+const button=document.getElementById("submitBtn")
+
+function updateSubmitButton(){
+
+if(form.checkValidity()){
+button.disabled=false
+}else{
+button.disabled=true
+}
+
+}
+
+function syncDetails(){
+
+ownerName.value=receiverName.value
+ownerEmail.value=receiverEmail.value
+ownerPhone.setNumber(receiverPhone.getNumber())
+
+updateSubmitButton()
+
+}
+
+checkbox.addEventListener("change",function(){
+
+if(this.checked){
+
+syncDetails()
+
+ownerName.readOnly=true
+ownerEmail.readOnly=true
+document.getElementById("owner_phone").readOnly=true
+
+}else{
+
+ownerName.readOnly=false
+ownerEmail.readOnly=false
+document.getElementById("owner_phone").readOnly=false
+
+}
+
+updateSubmitButton()
+
+})
+
+receiverName.addEventListener("input",()=>{ if(checkbox.checked) syncDetails() })
+receiverEmail.addEventListener("input",()=>{ if(checkbox.checked) syncDetails() })
+document.getElementById("receiver_phone").addEventListener("input",()=>{ if(checkbox.checked) syncDetails() })
+
+
+</script>
+
+
+
+<script>
+
+const form=document.getElementById("billingForm")
+const button=document.getElementById("submitBtn")
+
+form.addEventListener("input",function(){
+
+if(form.checkValidity()){
+button.disabled=false
+}else{
+button.disabled=true
+}
+
+})
+
+form.addEventListener("submit",function(e){
+
+if(!form.checkValidity()){
+e.preventDefault()
+}
+
+form.classList.add("was-validated")
+
+/* ADD THIS PART */
+document.getElementById("receiver_phone").value = receiverPhone.getNumber()
+document.getElementById("owner_phone").value = ownerPhone.getNumber()
+
+})
+
+
+</script>
+
+</body>
+
+</html>
+

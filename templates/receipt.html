@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body{
+background:#f3f6fa;
+font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.invoice-card{
+background:white;
+border-radius:10px;
+padding:40px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.invoice-title{
+font-size:32px;
+font-weight:700;
+letter-spacing:1px;
+}
+
+.company-name{
+font-size:22px;
+font-weight:600;
+}
+
+.meta{
+font-size:14px;
+color:#555;
+}
+
+.table thead{
+background:#f2f2f2;
+}
+
+.table td, .table th{
+padding:10px;
+vertical-align:middle;
+}
+
+.right{
+text-align:right;
+}
+
+.section-title{
+font-weight:600;
+margin-bottom:6px;
+}
+
+.detail-box{
+border:1px solid #e0e0e0;
+padding:15px;
+border-radius:6px;
+}
+
+input{
+width:70px;
+text-align:center;
+}
+
+.amount-box{
+font-size:16px;
+}
+
+.amount-box div{
+margin-bottom:5px;
+}
+
+.grand-total{
+font-size:18px;
+font-weight:600;
+}
+
+.signature{
+margin-top:60px;
+text-align:right;
+}
+
+.signature-line{
+margin-top:40px;
+font-weight:600;
+}
+
+@media print{
+
+button{
+display:none;
+}
+
+body{
+background:white;
+}
+
+.invoice-card{
+box-shadow:none;
+}
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container mt-5 mb-5">
+
+<div class="invoice-card">
+
+
+<!-- HEADER -->
+
+<div class="row align-items-center">
+
+<div class="col-md-6">
+
+<img src="{{ url_for('static', filename='logo.png') }}" style="height:60px">
+
+<div class="company-name mt-2">OIL PALM INDIA LTD</div>
+
+<div class="meta">
+GSTIN: 29AAAAA0000A1Z5<br>
+Registered Office: Bangalore, Karnataka
+</div>
+
+</div>
+
+<div class="col-md-6 text-end">
+
+<div class="invoice-title">INVOICE</div>
+
+<div class="meta mt-2">
+Invoice No: {{invoice_number}} <br>
+Date: {{date}}
+</div>
+
+</div>
+
+</div>
+
+<hr>
+
+
+<!-- RECEIVER + OWNER -->
+
+<div class="row mt-4">
+
+<div class="col-md-6">
+
+<div class="detail-box">
+
+<div class="section-title">Billed To</div>
+
+{{receiver_name}} <br>
+{{street}}, {{city}}, {{state}}, {{country}} <br>
+Phone: {{receiver_phone}} <br>
+Email: {{receiver_email}}
+
+</div>
+
+</div>
+
+
+<div class="col-md-6">
+
+<div class="detail-box">
+
+<div class="section-title">From</div>
+
+{{owner_name}} <br>
+Phone: {{owner_phone}} <br>
+Email: {{owner_email}}
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- PRODUCT TABLE -->
+
+<div class="mt-4">
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Product</th>
+<th>Qty (kg)</th>
+<th>Price/kg</th>
+<th>GST</th>
+<th class="right">Total</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td>Palm Oil</td>
+
+<td>
+<input type="number" id="qty" value="1" min="1" max="500000">
+</td>
+
+<td>135</td>
+
+<td>5%</td>
+
+<td class="right" id="total">141.75</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<!-- TOTALS -->
+
+<div class="row justify-content-end">
+
+<div class="col-md-4 amount-box">
+
+<div class="d-flex justify-content-between">
+<span>Subtotal</span>
+<span>₹ <span id="subtotal">135</span></span>
+</div>
+
+<div class="d-flex justify-content-between">
+<span>GST (5%)</span>
+<span>₹ <span id="gstamount">6.75</span></span>
+</div>
+
+<hr>
+
+<div class="d-flex justify-content-between grand-total">
+<span>Total</span>
+<span>₹ <span id="grandtotal">141.75</span></span>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- AMOUNT IN WORDS -->
+
+<div class="mt-4">
+
+<strong>Amount in Words:</strong><br>
+<span id="amountWords">One Hundred Forty One Rupees and Seventy Five Paise</span>
+
+</div>
+
+
+<!-- SIGNATURE -->
+
+<div class="signature">
+
+For Oil Palm India Ltd
+
+<div class="signature-line">
+Authorized Signatory
+</div>
+
+</div>
+
+
+<!-- ACTION BUTTONS -->
+
+<div class="text-center mt-4">
+
+<button class="btn btn-primary me-2" onclick="window.print()">
+Print
+</button>
+
+<button class="btn btn-success" onclick="savePDF()">
+Save as PDF
+</button>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+
+const price = 135
+const gstRate = 0.05
+
+const qty = document.getElementById("qty")
+
+const subtotal = document.getElementById("subtotal")
+const gstamount = document.getElementById("gstamount")
+const grand = document.getElementById("grandtotal")
+const total = document.getElementById("total")
+const words = document.getElementById("amountWords")
+
+function numberToWords(num){
+
+const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+"Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+
+const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+function convert(n){
+
+if(n < 20) return ones[n];
+
+if(n < 100)
+return tens[Math.floor(n/10)] + " " + ones[n%10];
+
+if(n < 1000)
+return ones[Math.floor(n/100)] + " Hundred " + convert(n%100);
+
+if(n < 100000)
+return convert(Math.floor(n/1000)) + " Thousand " + convert(n%1000);
+
+if(n < 10000000)
+return convert(Math.floor(n/100000)) + " Lakh " + convert(n%100000);
+
+return convert(Math.floor(n/10000000)) + " Crore " + convert(n%10000000);
+
+}
+
+let rupees = Math.floor(num);
+let paise = Math.round((num - rupees) * 100);
+
+return convert(rupees).trim() + " Rupees and " + convert(paise).trim() + " Paise";
+
+
+}
+
+function calculate(){
+
+let sub=price*qty.value
+let gst=sub*gstRate
+let grandTotal=sub+gst
+
+subtotal.innerText=sub.toFixed(2)
+gstamount.innerText=gst.toFixed(2)
+grand.innerText=grandTotal.toFixed(2)
+total.innerText=grandTotal.toFixed(2)
+
+words.innerText=numberToWords(grandTotal)
+
+}
+
+qty.addEventListener("input",calculate)
+
+calculate()
+
+function savePDF(){
+
+const element=document.querySelector(".invoice-card")
+
+html2pdf().from(element).save("invoice.pdf")
+
+}
+
+</script>
+
+</body>
+</html>

@@ -393,7 +393,7 @@ function syncDetails(){
 
 ownerName.value=receiverName.value
 ownerEmail.value=receiverEmail.value
-ownerPhone.setNumber(receiverPhone.getNumber())
+document.getElementById("owner_phone").value = document.getElementById("receiver_phone").value
 
 updateSubmitButton()
 

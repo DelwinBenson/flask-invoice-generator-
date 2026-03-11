@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -96,7 +95,7 @@ Please enter receiver name.
 Phone Number <span class="required">*</span>
 </label>
 
-<input id="receiver_phone" name="receiver_phone" type="tel" class="form-control" required>
+<input id="receiver_phone" name="receiver_phone" type="tel" class="form-control" maxlength="10" required>
 
 <div id="receiverPhoneError" class="error-text">
 Invalid phone number
@@ -229,7 +228,7 @@ Owner Name <span class="required">*</span>
 Phone Number <span class="required">*</span>
 </label>
 
-<input id="owner_phone" name="owner_phone" type="tel" class="form-control" required>
+<input id="owner_phone" name="owner_phone" type="tel" class="form-control" maxlength="10"required>
 
 <div id="ownerPhoneError" class="error-text">
 Invalid phone number
@@ -267,8 +266,6 @@ disabled>
 
 </div>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
 
 <script>
@@ -278,20 +275,34 @@ function setupPhone(inputId,errorId){
 const input=document.querySelector(inputId)
 
 const iti=window.intlTelInput(input,{
-initialCountry:"in",    
+initialCountry:"in",
 separateDialCode:true,
+onlyCountries:["in"],
+formatOnDisplay:false,
 utilsScript:"https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js"
 })
 
-input.addEventListener("blur",function(){
+function validatePhone(){
 
-if(!iti.isValidNumber()){
+let digits = input.value.replace(/\D/g,'')
+
+// force only digits in field
+input.value = digits
+
+if(digits.length !== 10){
 document.querySelector(errorId).style.display="block"
+input.setCustomValidity("Invalid phone")
 }else{
 document.querySelector(errorId).style.display="none"
+input.setCustomValidity("")
 }
 
-})
+updateSubmitButton()
+
+}
+
+input.addEventListener("input", validatePhone)
+input.addEventListener("blur", validatePhone)
 
 return iti
 
@@ -306,13 +317,23 @@ const ownerPhone=setupPhone("#owner_phone","#ownerPhoneError")
 
 <script>
 
-document.getElementById("pincode").addEventListener("input",function(){
+let pincodeTimer;
+
+document.getElementById("pincode").addEventListener("input", function(){
 
 let pincode=this.value.replace(/[^0-9]/g,'')
-
 this.value=pincode
 
-if(pincode.length!==6) return
+if(pincode.length!==6){
+document.getElementById("city").value=""
+document.getElementById("state").value=""
+document.getElementById("country").value=""
+return
+}
+
+clearTimeout(pincodeTimer)
+
+pincodeTimer=setTimeout(function(){
 
 fetch(`https://api.postalpincode.in/pincode/${pincode}`)
 .then(res=>res.json())
@@ -335,6 +356,9 @@ document.getElementById("country").value=""
 }
 
 })
+.catch(err=>console.error("Pincode API error:",err))
+
+},400)
 
 })
 
@@ -401,25 +425,16 @@ receiverName.addEventListener("input",()=>{ if(checkbox.checked) syncDetails() }
 receiverEmail.addEventListener("input",()=>{ if(checkbox.checked) syncDetails() })
 document.getElementById("receiver_phone").addEventListener("input",()=>{ if(checkbox.checked) syncDetails() })
 
-
 </script>
 
 
 
 <script>
 
-const form=document.getElementById("billingForm")
-const button=document.getElementById("submitBtn")
 
-form.addEventListener("input",function(){
+form.addEventListener("input", updateSubmitButton)
 
-if(form.checkValidity()){
-button.disabled=false
-}else{
-button.disabled=true
-}
-
-})
+updateSubmitButton()
 
 form.addEventListener("submit",function(e){
 
@@ -429,7 +444,6 @@ e.preventDefault()
 
 form.classList.add("was-validated")
 
-/* ADD THIS PART */
 document.getElementById("receiver_phone").value = receiverPhone.getNumber()
 document.getElementById("owner_phone").value = ownerPhone.getNumber()
 
@@ -439,6 +453,4 @@ document.getElementById("owner_phone").value = ownerPhone.getNumber()
 </script>
 
 </body>
-
 </html>
-
